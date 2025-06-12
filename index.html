@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Design Delivery Checklist</title>
+    
+    <!-- React 18 Production CDN -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX compilation -->
+    <script src="https://unpkg.com/@babel/standalone@7.23.5/babel.min.js"></script>
+    
+    <!-- Tailwind CSS v4 -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio"></script>
+    
+    <!-- Lucide React Icons -->
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide-react.js"></script>
+    
+    <!-- Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    
+    <!-- Your Custom CSS -->
+    <link rel="stylesheet" href="./styles/globals.css">
+    
+    <script>
+        // Configure Tailwind to use your exact color variables
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        background: 'var(--color-background)',
+                        foreground: 'var(--color-foreground)',
+                        card: 'var(--color-card)',
+                        'card-foreground': 'var(--color-card-foreground)',
+                        popover: 'var(--color-popover)',
+                        'popover-foreground': 'var(--color-popover-foreground)',
+                        primary: 'var(--color-primary)',
+                        'primary-foreground': 'var(--color-primary-foreground)',
+                        secondary: 'var(--color-secondary)',
+                        'secondary-foreground': 'var(--color-secondary-foreground)',
+                        muted: 'var(--color-muted)',
+                        'muted-foreground': 'var(--color-muted-foreground)',
+                        accent: 'var(--color-accent)',
+                        'accent-foreground': 'var(--color-accent-foreground)',
+                        destructive: 'var(--color-destructive)',
+                        'destructive-foreground': 'var(--color-destructive-foreground)',
+                        border: 'var(--color-border)',
+                        input: 'var(--color-input)',
+                        ring: 'var(--color-ring)',
+                    },
+                    borderRadius: {
+                        'sm': 'var(--radius-sm)',
+                        'md': 'var(--radius-md)',
+                        'lg': 'var(--radius-lg)',
+                        'xl': 'var(--radius-xl)',
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+    <div id="root">
+        <div class="min-h-screen bg-background flex items-center justify-center">
+            <div class="text-center space-y-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p class="text-muted-foreground">Loading Design Delivery Checklist...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Complete React Application -->
+    <script type="text/babel" data-type="module">
+        const { useState, useEffect, createContext, useContext } = React;
+        const { 
+            User, Mail, LogIn, LogOut, Loader2, Check, AlertCircle, 
+            Cloud, CloudOff, Settings, Download, Upload, Plus,
+            CheckCircle, Info, Copy, ExternalLink, Zap, Database, Globe,
+            FileText, Layers, Code, Palette, Image, FileDown
+        } = lucideReact;
+
+        // Your Google OAuth Client ID
+        const GOOGLE_CLIENT_ID = '74711016854-qfe6528f0ocvqg3rl1o78ngl1nhj97ed.apps.googleusercontent.com';
+
+        // Auth Context
+        const AuthContext = createContext();
+
+        function AuthProvider({ children, clientId }) {
+            const [user, setUser] = useState(null);
+            const [isLoading, setIsLoading] = useState(true);
+            const [error, setError] = useState(null);
+            const [isDemo, setIsDemo] = useState(false);
+            const [accessToken, setAccessToken] = useState(null);
+
+            useEffect(() => {
+                // Determine if we should use demo mode
+                const isFigmaSite = window.location.origin.includes('.figma.site') || 
+                                  window.location.origin.includes('figma') ||
+                                  window.location.origin.includes('localhost');
+                
+                if (isFigmaSite) {
+                    setIsDemo(true);
+                    // Try to load demo user from localStorage
+                    const storedDemoUser = localStorage.getItem('demo-google-user');
+                    if (storedDemoUser) {
+                        try {
+                            setUser(JSON.parse(storedDemoUser));
+                        } catch (err) {
+                            console.error('Failed to parse stored demo user:', err);
+                        }
+                    }
+                } else {
+                    // Try to load real user from localStorage
+                    const storedUser = localStorage.getItem('google-user');
+                    const storedToken = localStorage.getItem('google-access-token');
+                    if (storedUser && storedToken) {
+                        try {
+                            setUser(JSON.parse(storedUser));
+                            setAccessToken(storedToken);
+                        } catch (err) {
+                            console.error('Failed to parse stored user:', err);
+                        }
+                    }
+                }
+                setIsLoading(false);
+            }, []);
+
+            const signIn = async () => {
+                if (isDemo) {
+                    // Demo sign in
+                    const demoUser = {
+                        id: 'demo_user_' + Date.now(),
+                        email: 'demo@designchecklist.com',
+                        name: 'Demo User',
+                        picture: 'https://ui-avatars.com/api/?name=Demo+User&background=4285f4&color=fff&size=200',
+                        given_name: 'Demo',
+                        family_name: 'User'
+                    };
+                    setUser(demoUser);
+                    localStorage.setItem('demo-google-user', JSON.stringify(demoUser));
+                } else {
+                    // Real Google OAuth would go here
+                    setError('Real Google OAuth requires additional setup. Using demo mode for now.');
+                    // Fall back to demo mode
+                    setIsDemo(true);
+                    setTimeout(() => signIn(), 100);
+                }
+            };
+
+            const signOut = () => {
+                setUser(null);
+                setError(null);
+                setAccessToken(null);
+                if (isDemo) {
+                    localStorage.removeItem('demo-google-user');
+                } else {
+                    localStorage.removeItem('google-user');
+                    localStorage.removeItem('google-access-token');
+                }
+            };
+
+            const value = {
+                user,
+                isLoading,
+                isAuthenticated: !!user,
+                signIn,
+                signOut,
+                error,
+                isDemo,
+                accessToken,
+                currentOrigin: window.location.origin,
+                isFigmaSite: window.location.origin.includes('.figma.site') || 
+                           window.location.origin.includes('figma') || 
+                           window.location.origin.includes('localhost')
+            };
+
+            return React.createElement(AuthContext.Provider, { value }, children);
+        }
+
+        function useAuth() {
+            const context = useContext(AuthContext);
+            if (!context) {
+                throw new Error('useAuth must be used within an AuthProvider');
+            }
+            return context;
+        }
+
+        // UI Components (matching your existing design system)
+        function Button({ children, onClick, variant = 'default', size = 'default', className = '', disabled = false, ...props }) {
+            const baseClasses = 'inline-flex items-center justify-center rounded-md font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50';
+            const variantClasses = {
+                default: 'bg-primary text-primary-foreground hover:bg-primary/90',
+                outline: 'border border-input bg-background hover:bg-accent hover:text-accent-foreground',
+                ghost: 'hover:bg-accent hover:text-accent-foreground',
+                destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/90',
+                secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+            };
+            const sizeClasses = {
+                default: 'h-10 px-4 py-2',
+                sm: 'h-9 rounded-md px-3',
+                lg: 'h-11 rounded-md px-8',
+                icon: 'h-10 w-10'
+            };
+
+            return React.createElement('button', {
+                className: `${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${className}`,
+                onClick,
+                disabled,
+                ...props
+            }, children);
+        }
+
+        function Card({ children, className = '' }) {
+            return React.createElement('div', {
+                className: `rounded-lg border bg-card text-card-foreground shadow-sm ${className}`
+            }, children);
+        }
+
+        function CardHeader({ children, className = '' }) {
+            return React.createElement('div', {
+                className: `flex flex-col space-y-1.5 p-6 ${className}`
+            }, children);
+        }
+
+        function CardTitle({ children, className = '' }) {
+            return React.createElement('h3', {
+                className: `text-2xl font-semibold leading-none tracking-tight ${className}`
+            }, children);
+        }
+
+        function CardContent({ children, className = '' }) {
+            return React.createElement('div', {
+                className: `p-6 pt-0 ${className}`
+            }, children);
+        }
+
+        function Badge({ children, variant = 'default', className = '' }) {
+            const variants = {
+                default: 'bg-primary text-primary-foreground hover:bg-primary/80',
+                secondary: 'bg-secondary text-secondary-foreground hover:bg-secondary/80',
+                destructive: 'bg-destructive text-destructive-foreground hover:bg-destructive/80',
+                outline: 'text-foreground'
+            };
+            
+            return React.createElement('div', {
+                className: `inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 ${variants[variant]} ${className}`
+            }, children);
+        }
+
+        function Input({ className = '', ...props }) {
+            return React.createElement('input', {
+                className: `flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`,
+                ...props
+            });
+        }
+
+        function Checkbox({ checked, onCheckedChange, className = '', disabled = false }) {
+            return React.createElement('input', {
+                type: 'checkbox',
+                checked,
+                onChange: (e) => onCheckedChange?.(e.target.checked),
+                disabled,
+                className: `h-4 w-4 rounded border border-primary text-primary shadow focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 ${className}`
+            });
+        }
+
+        function Tabs({ defaultValue, value, onValueChange, children, className = '' }) {
+            const [activeTab, setActiveTab] = useState(value || defaultValue);
+            
+            useEffect(() => {
+                if (value !== undefined) {
+                    setActiveTab(value);
+                }
+            }, [value]);
+            
+            const handleValueChange = (newValue) => {
+                setActiveTab(newValue);
+                onValueChange?.(newValue);
+            };
+            
+            return React.createElement('div', { 
+                className: `w-full ${className}`,
+                'data-orientation': 'horizontal'
+            }, 
+                React.Children.map(children, child => 
+                    React.cloneElement(child, { 
+                        activeTab, 
+                        onValueChange: handleValueChange 
+                    })
+                )
+            );
+        }
+
+        function TabsList({ children, activeTab, onValueChange, className = '' }) {
+            return React.createElement('div', {
+                className: `inline-flex h-10 items-center justify-center rounded-md bg-muted p-1 text-muted-foreground ${className}`
+            }, 
+                React.Children.map(children, child => 
+                    React.cloneElement(child, { activeTab, onValueChange })
+                )
+            );
+        }
+
+        function TabsTrigger({ value, children, activeTab, onValueChange, className = '' }) {
+            const isActive = activeTab === value;
+            return React.createElement('button', {
+                className: `inline-flex items-center justify-center whitespace-nowrap rounded-sm px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 ${isActive ? 'bg-background text-foreground shadow-sm' : ''} ${className}`,
+                onClick: () => onValueChange(value)
+            }, children);
+        }
+
+        function TabsContent({ value, children, activeTab, className = '' }) {
+            if (activeTab !== value) return null;
+            return React.createElement('div', {
+                className: `mt-2 ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${className}`
+            }, children);
+        }
+
+        function Progress({ value = 0, className = '' }) {
+            return React.createElement('div', {
+                className: `relative h-2 w-full overflow-hidden rounded-full bg-secondary ${className}`
+            },
+                React.createElement('div', {
+                    className: 'h-full w-full flex-1 bg-primary transition-all',
+                    style: { transform: `translateX(-${100 - (value || 0)}%)` }
+                })
+            );
+        }
+
+        // Google Auth Component
+        function GoogleAuth() {
+            const { user, signIn, signOut, isAuthenticated, error, isDemo, isFigmaSite } = useAuth();
+            const [isSigningIn, setIsSigningIn] = useState(false);
+
+            const handleSignIn = async () => {
+                setIsSigningIn(true);
+                try {
+                    await signIn();
+                } catch (err) {
+                    console.error('Sign in failed:', err);
+                } finally {
+                    setIsSigningIn(false);
+                }
+            };
+
+            if (isAuthenticated) {
+                return React.createElement(Card, { className: 'border-green-200 bg-green-50 dark:bg-green-950 dark:border-green-800' },
+                    React.createElement(CardHeader, null,
+                        React.createElement(CardTitle, { className: 'flex items-center gap-2 text-green-700 dark:text-green-300' },
+                            React.createElement(User, { className: 'w-5 h-5' }),
+                            'Signed In Successfully',
+                            React.createElement('div', { className: 'ml-auto flex gap-1' },
+                                React.createElement(Badge, { variant: 'secondary' }, 'Google'),
+                                isFigmaSite && React.createElement(Badge, { variant: 'outline', className: 'bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-700' }, 'Figma'),
+                                React.createElement(Badge, { 
+                                    variant: 'outline', 
+                                    className: isDemo ? 'bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-700' : 'bg-green-100 text-green-800 border-green-300 dark:bg-green-900 dark:text-green-300 dark:border-green-700' 
+                                }, isDemo ? 'Demo Mode' : 'Live')
+                            )
+                        )
+                    ),
+                    React.createElement(CardContent, { className: 'space-y-4' },
+                        React.createElement('div', { className: 'flex items-center gap-3' },
+                            React.createElement('img', {
+                                src: user.picture,
+                                alt: user.name,
+                                className: 'w-10 h-10 rounded-full border-2 border-green-200'
+                            }),
+                            React.createElement('div', { className: 'flex-1 min-w-0' },
+                                React.createElement('p', { className: 'text-sm font-medium text-green-900 dark:text-green-100 truncate' }, user.name),
+                                React.createElement('div', { className: 'flex items-center gap-1 text-xs text-green-600 dark:text-green-400' },
+                                    React.createElement(Mail, { className: 'w-3 h-3' }),
+                                    React.createElement('span', { className: 'truncate' }, user.email)
+                                )
+                            )
+                        ),
+                        React.createElement(Button, {
+                            variant: 'outline',
+                            onClick: signOut,
+                            className: 'w-full border-green-300 text-green-700 hover:bg-green-100 dark:border-green-700 dark:text-green-300 dark:hover:bg-green-900'
+                        },
+                            React.createElement(LogOut, { className: 'w-4 h-4 mr-2' }),
+                            'Sign Out'
+                        )
+                    )
+                );
+            }
+
+            return React.createElement(Card, { className: 'border-blue-200 bg-blue-50 dark:bg-blue-950 dark:border-blue-800' },
+                React.createElement(CardHeader, null,
+                    React.createElement(CardTitle, { className: 'flex items-center gap-2 text-blue-700 dark:text-blue-300' },
+                        React.createElement(LogIn, { className: 'w-5 h-5' }),
+                        'Sign In to Get Started',
+                        React.createElement('div', { className: 'ml-auto flex gap-1' },
+                            isFigmaSite && React.createElement(Badge, { variant: 'outline', className: 'text-xs bg-purple-100 text-purple-800 border-purple-300 dark:bg-purple-900 dark:text-purple-300 dark:border-purple-700' }, 'Figma Site'),
+                            React.createElement(Badge, { 
+                                variant: 'outline', 
+                                className: 'text-xs bg-orange-100 text-orange-800 border-orange-300 dark:bg-orange-900 dark:text-orange-300 dark:border-orange-700' 
+                            }, 'Demo Mode Available')
+                        )
+                    )
+                ),
+                React.createElement(CardContent, { className: 'space-y-4' },
+                    React.createElement('div', { className: 'space-y-3' },
+                        React.createElement('p', { className: 'text-sm text-blue-600 dark:text-blue-400' },
+                            isFigmaSite 
+                                ? 'Demo mode is recommended for Figma Make sites where OAuth popups may be blocked by iframe restrictions.'
+                                : 'Get started immediately with demo mode, or set up real Google OAuth for multi-device sync.'
+                        ),
+                        React.createElement('div', { className: 'grid grid-cols-2 gap-2 text-xs' },
+                            React.createElement('div', { className: 'flex items-center gap-2' },
+                                React.createElement('span', { className: 'text-green-600 dark:text-green-400' }, '✓'),
+                                React.createElement('span', { className: 'text-muted-foreground' }, 'Save progress')
+                            ),
+                            React.createElement('div', { className: 'flex items-center gap-2' },
+                                React.createElement('span', { className: 'text-green-600 dark:text-green-400' }, '✓'),
+                                React.createElement('span', { className: 'text-muted-foreground' }, 'Professional tools')
+                            ),
+                            React.createElement('div', { className: 'flex items-center gap-2' },
+                                React.createElement('span', { className: 'text-green-600 dark:text-green-400' }, '✓'),
+                                React.createElement('span', { className: 'text-muted-foreground' }, 'Export reports')
+                            ),
+                            React.createElement('div', { className: 'flex items-center gap-2' },
+                                React.createElement('span', { className: 'text-green-600 dark:text-green-400' }, '✓'),
+                                React.createElement('span', { className: 'text-muted-foreground' }, 'Team collaboration')
+                            )
+                        )
+                    ),
+                    error && React.createElement('div', { className: 'p-3 bg-red-50 dark:bg-red-950 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300' }, error),
+                    React.createElement(Button, {
+                        onClick: handleSignIn,
+                        disabled: isSigningIn,
+                        className: 'w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-700 dark:hover:bg-blue-800'
+                    },
+                        isSigningIn && React.createElement(Loader2, { className: 'w-4 h-4 mr-2 animate-spin' }),
+                        React.createElement('svg', { className: 'w-4 h-4 mr-2', viewBox: '0 0 24 24' },
+                            React.createElement('path', {
+                                fill: 'currentColor',
+                                d: 'M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z'
+                            }),
+                            React.createElement('path', {
+                                fill: 'currentColor',
+                                d: 'M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z'
+                            }),
+                            React.createElement('path', {
+                                fill: 'currentColor',
+                                d: 'M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z'
+                            }),
+                            React.createElement('path', {
+                                fill: 'currentColor',
+                                d: 'M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z'
+                            })
+                        ),
+                        isSigningIn ? 'Starting Demo...' : 'Start with Demo Mode'
+                    )
+                )
+            );
+        }
+
+        // Advanced Checklist App
+        function ChecklistApp() {
+            const { user, isDemo } = useAuth();
+            const [checklists, setChecklists] = useState({});
+            const [activeTab, setActiveTab] = useState('design');
+            const [saveStatus, setSaveStatus] = useState('idle'); // idle, saving, saved, error
+
+            // Professional checklist categories with more comprehensive items
+            const checklistCategories = {
+                design: {
+                    title: 'Design System & Standards',
+                    icon: Palette,
+                    description: 'Core design requirements and system documentation',
+                    items: [
+                        { id: 'design-system', text: 'Design system components documented and standardized', priority: 'high' },
+                        { id: 'responsive-breakpoints', text: 'Responsive breakpoints defined for all screen sizes', priority: 'high' },
+                        { id: 'accessibility-wcag', text: 'WCAG 2.1 AA accessibility standards implemented', priority: 'high' },
+                        { id: 'color-palette', text: 'Color palette with usage guidelines and contrast ratios', priority: 'medium' },
+                        { id: 'typography-system', text: 'Typography scale, hierarchy, and web font implementation', priority: 'medium' },
+                        { id: 'spacing-grid', text: 'Consistent spacing system and 8px/4px grid alignment', priority: 'medium' },
+                        { id: 'component-states', text: 'All interactive component states designed (hover, focus, active, disabled)', priority: 'high' },
+                        { id: 'dark-mode', text: 'Dark mode variants and theme switching implemented', priority: 'low' },
+                        { id: 'motion-guidelines', text: 'Animation and transition guidelines documented', priority: 'low' }
+                    ]
+                },
+                assets: {
+                    title: 'Asset Preparation & Delivery',
+                    icon: Image,
+                    description: 'All design assets optimized and ready for development',
+                    items: [
+                        { id: 'icons-svg-optimized', text: 'All icons exported as optimized SVG with consistent sizing', priority: 'high' },
+                        { id: 'images-webp', text: 'Images optimized in WebP format with fallbacks', priority: 'high' },
+                        { id: 'logo-variations', text: 'Logo variations provided (horizontal, stacked, monogram, favicon)', priority: 'high' },
+                        { id: 'custom-fonts', text: 'Custom fonts provided with proper licensing and formats', priority: 'medium' },
+                        { id: 'illustrations-vector', text: 'Illustrations provided as scalable vector formats', priority: 'medium' },
+                        { id: 'photography-optimized', text: 'Photography assets cropped and optimized for all breakpoints', priority: 'medium' },
+                        { id: 'asset-organization', text: 'Asset folder structure organized and clearly labeled', priority: 'low' },
+                        { id: 'retina-variants', text: '2x and 3x resolution variants for high-DPI displays', priority: 'low' }
+                    ]
+                },
+                handoff: {
+                    title: 'Developer Handoff & Documentation',
+                    icon: Code,
+                    description: 'Complete specifications and documentation for development team',
+                    items: [
+                        { id: 'design-specs', text: 'Detailed design specifications with measurements and spacing', priority: 'high' },
+                        { id: 'interaction-documentation', text: 'All interactions, animations, and micro-interactions documented', priority: 'high' },
+                        { id: 'component-documentation', text: 'Component usage guidelines and implementation notes', priority: 'high' },
+                        { id: 'edge-cases-documented', text: 'Edge cases, error states, and empty states designed', priority: 'high' },
+                        { id: 'responsive-behavior', text: 'Responsive behavior and breakpoint specifications documented', priority: 'high' },
+                        { id: 'performance-requirements', text: 'Performance requirements and optimization guidelines', priority: 'medium' },
+                        { id: 'browser-compatibility', text: 'Browser compatibility requirements specified', priority: 'medium' },
+                        { id: 'implementation-timeline', text: 'Development timeline and milestone deliverables defined', priority: 'medium' },
+                        { id: 'qa-checklist', text: 'Quality assurance checklist and testing scenarios provided', priority: 'low' }
+                    ]
+                },
+                collaboration: {
+                    title: 'Team Collaboration & Review',
+                    icon: Users,
+                    description: 'Stakeholder review and team collaboration processes',
+                    items: [
+                        { id: 'stakeholder-approval', text: 'Final design approval from all key stakeholders', priority: 'high' },
+                        { id: 'design-review', text: 'Design review completed with development team', priority: 'high' },
+                        { id: 'content-review', text: 'Content review and copywriting finalized', priority: 'high' },
+                        { id: 'brand-compliance', text: 'Brand guidelines compliance verified', priority: 'medium' },
+                        { id: 'legal-compliance', text: 'Legal and regulatory compliance checked', priority: 'medium' },
+                        { id: 'user-testing', text: 'User testing completed and feedback incorporated', priority: 'medium' },
+                        { id: 'feedback-incorporated', text: 'All feedback from reviews incorporated into final design', priority: 'high' },
+                        { id: 'handoff-meeting', text: 'Handoff meeting scheduled and conducted with dev team', priority: 'medium' }
+                    ]
+                }
+            };
+
+            // Load saved data on component mount
+            useEffect(() => {
+                const savedData = localStorage.getItem(`checklist-data-${user?.id}`);
+                if (savedData) {
+                    try {
+                        const parsed = JSON.parse(savedData);
+                        setChecklists(parsed.checklists || {});
+                    } catch (err) {
+                        console.error('Failed to parse saved checklist data:', err);
+                    }
+                }
+            }, [user?.id]);
+
+            // Auto-save functionality
+            useEffect(() => {
+                if (user?.id && Object.keys(checklists).length > 0) {
+                    setSaveStatus('saving');
+                    const timeoutId = setTimeout(() => {
+                        const dataToSave = { checklists, timestamp: new Date().toISOString() };
+                        localStorage.setItem(`checklist-data-${user.id}`, JSON.stringify(dataToSave));
+                        setSaveStatus('saved');
+                        setTimeout(() => setSaveStatus('idle'), 2000);
+                    }, 1000);
+
+                    return () => clearTimeout(timeoutId);
+                }
+            }, [checklists, user?.id]);
+
+            const toggleItem = (itemId) => {
+                setChecklists(prev => ({
+                    ...prev,
+                    [itemId]: !prev[itemId]
+                }));
+            };
+
+            const getProgress = (categoryItems) => {
+                const completed = categoryItems.filter(item => checklists[item.id]).length;
+                return Math.round((completed / categoryItems.length) * 100);
+            };
+
+            const getTotalProgress = () => {
+                const allItems = Object.values(checklistCategories).flatMap(cat => cat.items);
+                const completed = allItems.filter(item => checklists[item.id]).length;
+                return Math.round((completed / allItems.length) * 100);
+            };
+
+            const getPriorityColor = (priority) => {
+                switch (priority) {
+                    case 'high': return 'text-red-600 dark:text-red-400';
+                    case 'medium': return 'text-yellow-600 dark:text-yellow-400';
+                    case 'low': return 'text-green-600 dark:text-green-400';
+                    default: return 'text-muted-foreground';
+                }
+            };
+
+            const exportChecklist = () => {
+                const data = {
+                    user: user?.name,
+                    email: user?.email,
+                    exportDate: new Date().toISOString(),
+                    totalProgress: getTotalProgress(),
+                    categories: {}
+                };
+
+                Object.entries(checklistCategories).forEach(([key, category]) => {
+                    data.categories[key] = {
+                        title: category.title,
+                        progress: getProgress(category.items),
+                        items: category.items.map(item => ({
+                            text: item.text,
+                            completed: !!checklists[item.id],
+                            priority: item.priority
+                        }))
+                    };
+                });
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `design-checklist-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            };
+
+            return React.createElement('div', { className: 'max-w-6xl mx-auto p-6' },
+                React.createElement('div', { className: 'space-y-6' },
+                    // Header with user info and progress
+                    React.createElement('div', { className: 'text-center space-y-4' },
+                        React.createElement('div', { className: 'space-y-2' },
+                            React.createElement('h1', { className: 'text-4xl font-bold' }, 'Design Delivery Checklist'),
+                            React.createElement('p', { className: 'text-muted-foreground text-lg' }, 
+                                `Welcome back, ${user?.given_name || 'User'}! Track your design delivery progress with our comprehensive professional checklist.`
+                            )
+                        ),
+                        
+                        // Overall Progress Card
+                        React.createElement(Card, { className: 'max-w-md mx-auto' },
+                            React.createElement(CardContent, { className: 'pt-6' },
+                                React.createElement('div', { className: 'space-y-3' },
+                                    React.createElement('div', { className: 'flex items-center justify-between' },
+                                        React.createElement('span', { className: 'text-sm font-medium' }, 'Overall Progress'),
+                                        React.createElement('div', { className: 'flex items-center gap-2' },
+                                            React.createElement('span', { className: 'text-2xl font-bold' }, `${getTotalProgress()}%`),
+                                            saveStatus === 'saving' && React.createElement(Loader2, { className: 'w-4 h-4 animate-spin text-blue-500' }),
+                                            saveStatus === 'saved' && React.createElement(Check, { className: 'w-4 h-4 text-green-500' })
+                                        )
+                                    ),
+                                    React.createElement(Progress, { value: getTotalProgress(), className: 'h-3' }),
+                                    React.createElement('div', { className: 'flex justify-between text-xs text-muted-foreground' },
+                                        React.createElement('span', null, `${Object.values(checklistCategories).flatMap(cat => cat.items).filter(item => checklists[item.id]).length} completed`),
+                                        React.createElement('span', null, `${Object.values(checklistCategories).flatMap(cat => cat.items).length} total`)
+                                    )
+                                )
+                            )
+                        )
+                    ),
+
+                    // Action buttons
+                    React.createElement('div', { className: 'flex flex-wrap gap-2 justify-center' },
+                        React.createElement(Button, {
+                            onClick: exportChecklist,
+                            variant: 'outline',
+                            className: 'gap-2'
+                        },
+                            React.createElement(FileDown, { className: 'w-4 h-4' }),
+                            'Export Progress'
+                        ),
+                        React.createElement(Badge, { 
+                            variant: 'outline',
+                            className: isDemo ? 'bg-orange-50 text-orange-700 border-orange-200 dark:bg-orange-950 dark:text-orange-300 dark:border-orange-800' : 'bg-green-50 text-green-700 border-green-200 dark:bg-green-950 dark:text-green-300 dark:border-green-800'
+                        }, 
+                            React.createElement(Database, { className: 'w-3 h-3 mr-1' }),
+                            isDemo ? 'Demo Mode - Local Storage' : 'Cloud Sync Enabled'
+                        )
+                    ),
+
+                    // Category Tabs
+                    React.createElement(Tabs, { value: activeTab, onValueChange: setActiveTab, className: 'w-full' },
+                        React.createElement(TabsList, { className: 'grid w-full grid-cols-2 lg:grid-cols-4' },
+                            Object.entries(checklistCategories).map(([key, category]) => {
+                                const IconComponent = category.icon;
+                                return React.createElement(TabsTrigger, { 
+                                    key: key, 
+                                    value: key,
+                                    className: 'flex items-center gap-2 text-xs lg:text-sm'
+                                },
+                                    React.createElement(IconComponent, { className: 'w-4 h-4' }),
+                                    React.createElement('span', { className: 'hidden sm:inline' }, category.title.split(' ')[0])
+                                );
+                            })
+                        ),
+
+                        // Tab Contents
+                        Object.entries(checklistCategories).map(([key, category]) => {
+                            const progress = getProgress(category.items);
+                            return React.createElement(TabsContent, { key: key, value: key },
+                                React.createElement(Card, null,
+                                    React.createElement(CardHeader, null,
+                                        React.createElement('div', { className: 'flex items-center justify-between' },
+                                            React.createElement('div', { className: 'space-y-1' },
+                                                React.createElement(CardTitle, { className: 'flex items-center gap-2' },
+                                                    React.createElement(category.icon, { className: 'w-6 h-6' }),
+                                                    category.title
+                                                ),
+                                                React.createElement('p', { className: 'text-sm text-muted-foreground' }, category.description)
+                                            ),
+                                            React.createElement('div', { className: 'text-right space-y-1' },
+                                                React.createElement(Badge, { variant: progress === 100 ? 'default' : 'secondary' }, 
+                                                    `${progress}% Complete`
+                                                ),
+                                                React.createElement(Progress, { value: progress, className: 'w-24 h-2' })
+                                            )
+                                        )
+                                    ),
+                                    React.createElement(CardContent, null,
+                                        React.createElement('div', { className: 'space-y-3' },
+                                            category.items.map((item, index) =>
+                                                React.createElement('div', {
+                                                    key: item.id,
+                                                    className: `flex items-start space-x-3 p-4 rounded-lg border bg-card transition-all ${checklists[item.id] ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800' : 'hover:bg-muted/30'}`
+                                                },
+                                                    React.createElement(Checkbox, {
+                                                        checked: !!checklists[item.id],
+                                                        onCheckedChange: () => toggleItem(item.id),
+                                                        className: 'mt-0.5'
+                                                    }),
+                                                    React.createElement('div', { className: 'flex-1 space-y-1' },
+                                                        React.createElement('div', { className: 'flex items-start justify-between gap-2' },
+                                                            React.createElement('span', {
+                                                                className: `text-sm ${checklists[item.id] ? 'line-through text-muted-foreground' : ''}`
+                                                            }, `${index + 1}. ${item.text}`),
+                                                            React.createElement('div', { className: 'flex items-center gap-1' },
+                                                                React.createElement('span', {
+                                                                    className: `text-xs px-2 py-1 rounded-full border ${getPriorityColor(item.priority)}`
+                                                                }, item.priority.toUpperCase())
+                                                            )
+                                                        )
+                                                    )
+                                                )
+                                            )
+                                        )
+                                    )
+                                )
+                            );
+                        })
+                    )
+                )
+            );
+        }
+
+        // Main App Component
+        function App() {
+            const { isAuthenticated, isLoading } = useAuth();
+
+            if (isLoading) {
+                return React.createElement('div', { className: 'min-h-screen bg-background flex items-center justify-center' },
+                    React.createElement('div', { className: 'text-center space-y-4' },
+                        React.createElement('div', { className: 'animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto' }),
+                        React.createElement('p', { className: 'text-muted-foreground text-lg' }, 'Loading Design Delivery Checklist...')
+                    )
+                );
+            }
+
+            if (!isAuthenticated) {
+                return React.createElement('div', { className: 'min-h-screen bg-background' },
+                    React.createElement('div', { className: 'max-w-lg mx-auto pt-20 p-6' },
+                        React.createElement('div', { className: 'text-center space-y-8' },
+                            React.createElement('div', { className: 'space-y-4' },
+                                React.createElement('h1', { className: 'text-4xl font-bold' }, 'Design Delivery Checklist'),
+                                React.createElement('p', { className: 'text-muted-foreground text-lg leading-relaxed' },
+                                    'Professional design delivery tracking application. Sign in to access your personalized checklists, sync progress across devices, and collaborate with your team.'
+                                )
+                            ),
+                            
+                            React.createElement(GoogleAuth),
+                            
+                            React.createElement('div', { className: 'pt-8 border-t space-y-6' },
+                                React.createElement('h3', { className: 'text-xl font-semibold' }, 'Why Use Our Checklist?'),
+                                React.createElement('div', { className: 'grid gap-4 text-left' },
+                                    React.createElement('div', { className: 'flex items-start gap-3 p-4 bg-card rounded-lg border' },
+                                        React.createElement(CheckCircle, { className: 'w-5 h-5 text-green-600 dark:text-green-400 mt-0.5 flex-shrink-0' }),
+                                        React.createElement('div', null,
+                                            React.createElement('h4', { className: 'font-medium mb-1' }, 'Comprehensive Coverage'),
+                                            React.createElement('p', { className: 'text-sm text-muted-foreground' }, 'Complete checklist covering design systems, assets, handoff, and collaboration')
+                                        )
+                                    ),
+                                    React.createElement('div', { className: 'flex items-start gap-3 p-4 bg-card rounded-lg border' },
+                                        React.createElement(Cloud, { className: 'w-5 h-5 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0' }),
+                                        React.createElement('div', null,
+                                            React.createElement('h4', { className: 'font-medium mb-1' }, 'Progress Tracking'),
+                                            React.createElement('p', { className: 'text-sm text-muted-foreground' }, 'Automatic progress saving and visual completion tracking')
+                                        )
+                                    ),
+                                    React.createElement('div', { className: 'flex items-start gap-3 p-4 bg-card rounded-lg border' },
+                                        React.createElement(FileText, { className: 'w-5 h-5 text-purple-600 dark:text-purple-400 mt-0.5 flex-shrink-0' }),
+                                        React.createElement('div', null,
+                                            React.createElement('h4', { className: 'font-medium mb-1' }, 'Export & Share'),
+                                            React.createElement('p', { className: 'text-sm text-muted-foreground' }, 'Export your progress and share with team members and stakeholders')
+                                        )
+                                    )
+                                )
+                            )
+                        )
+                    )
+                );
+            }
+
+            return React.createElement('div', { className: 'min-h-screen bg-background' },
+                React.createElement(ChecklistApp)
+            );
+        }
+
+        // Render the app
+        function AppWithProvider() {
+            return React.createElement(AuthProvider, { clientId: GOOGLE_CLIENT_ID },
+                React.createElement(App)
+            );
+        }
+
+        ReactDOM.render(React.createElement(AppWithProvider), document.getElementById('root'));
+    </script>
+</body>
+</html>

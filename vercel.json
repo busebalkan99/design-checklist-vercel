@@ -1,0 +1,29 @@
+{
+  "version": 2,
+  "functions": {
+    "api/save.js": {
+      "runtime": "nodejs18.x"
+    },
+    "api/load.js": {
+      "runtime": "nodejs18.x"
+    }
+  },
+  "routes": [
+    {
+      "src": "/api/save",
+      "dest": "/api/save.js"
+    },
+    {
+      "src": "/api/load",
+      "dest": "/api/load.js"
+    },
+    {
+      "src": "/styles/(.*)",
+      "dest": "/styles/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
+}

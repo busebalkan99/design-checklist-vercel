@@ -1,0 +1,12 @@
+{
+  "name": "design-checklist-app",
+  "version": "1.0.0",
+  "description": "Professional Design Delivery Checklist Application",
+  "engines": {
+    "node": "18.x"
+  },
+  "scripts": {
+    "build": "echo 'Build complete'",
+    "start": "echo 'Static site ready'"
+  }
+}
